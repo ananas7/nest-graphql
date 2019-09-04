@@ -36,7 +36,7 @@ export class RolesResolver {
 	 */
 	@Query(returns => [RoleDataTree])
 	roles(@Args() roleArgs: RoleArgs): Promise<RoleDataTree[]> {
-		return this.roleService.findAll(roleArgs);
+		return this.roleService.makeTree(roleArgs);
 	}
 
 	/**

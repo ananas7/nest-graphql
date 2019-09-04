@@ -18,13 +18,7 @@ export class RoleService {
 		private readonly roleRepository: Repository<RoleEntity>,
 		@InjectRepository(WorkerEntity)
 		private readonly workerRepository: Repository<WorkerEntity>,
-	) {}
-
-	/**
-	 * Метод для поиска всех ролей
-	 */
-	async findAll({level = 3, parentId = null}: RoleArgs): Promise<RoleDataTree[]> {
-		return await this.makeTree(level, parentId);
+	) {
 	}
 
 	/**
@@ -32,11 +26,12 @@ export class RoleService {
 	 * @param {number} level уровень до которого строить дерево
 	 * @param {number|null} parentId идентификатор родительской роли
 	 */
-	async makeTree(level: number, parentId: number | null): Promise<RoleDataTree[]> {
+	async makeTree({ level, parentId = null }: RoleArgs): Promise<RoleDataTree[]> {
 		if (level === 0) {
 			return [];
 		}
-		const newLevel = --level;
+		const hasNotLevel = level === null;
+		const leftLevel = hasNotLevel ? level : --level;
 
 		const entities = await this.roleRepository.find({
 			where: {
@@ -47,15 +42,54 @@ export class RoleService {
 		const res: RoleDataTree[] = [];
 
 		for (const entity of entities) {
-			const {parent, ...entityData} = entity;
+			const { parent, ...entityData } = entity;
+			const allChildrenCount = await this.countAllDescendants(entity.id);
+			const childrenCount = await this.countNativeDescendants(entity.id);
+			const children = await this.makeTree({ level: leftLevel, parentId: entity.id });
 			const newElem = {
 				...entityData,
-				children: await this.makeTree(newLevel, entity.id),
+				children,
+				allChildrenCount,
+				childrenCount,
 			};
 			res.push(newElem);
 		}
 
 		return res;
+	}
+
+	/**
+	 * Метод для поиска "родных" детей узла
+	 * @param id идентификатор родительской роли
+	 */
+	private async countNativeDescendants(id: number) {
+		return await this.roleRepository
+			.createQueryBuilder('role')
+			.where('role.parent = :id', { id })
+			.getCount();
+	}
+
+	/**
+	 * Метод для поиска всех детей узла
+	 * @param id идентификатор родительской роли
+	 */
+	private async countAllDescendants(id: number) {
+		let count = 0;
+		const children = await this.roleRepository.find({ where: { parent: id } });
+
+		if (!children) {
+			return count;
+		}
+
+		// Добавляем количество прямых потомков
+		count += children.length;
+
+		// Добавляем количество детей детей
+		for (const child of children) {
+			count += await this.countAllDescendants(child.id);
+		}
+
+		return count;
 	}
 
 	/**
@@ -73,8 +107,7 @@ export class RoleService {
 		role.name = articleData.name;
 		role.direction = articleData.direction;
 		if (articleData.parentId) {
-			const parentRole = await this.getAndCheckRole(articleData.parentId);
-			role.parent = parentRole;
+			role.parent = await this.getAndCheckRole(articleData.parentId);
 		}
 
 		return await this.roleRepository.save(role);
@@ -84,16 +117,14 @@ export class RoleService {
 	/**
 	 * Метод для обновления данных роли
 	 */
-	async update(roleId: number, {parent, worker, ...roleData}: UpdateRoleInput): Promise<RoleEntity> {
+	async update(roleId: number, { parent, worker, ...roleData }: UpdateRoleInput): Promise<RoleEntity> {
 		const toUpdate = await this.getAndCheckRole(roleId);
 		const updated = Object.assign(toUpdate, roleData);
 		if (parent) {
-			const parentRole = await this.getAndCheckRole(parent);
-			updated.parent = parentRole;
+			updated.parent = await this.getAndCheckRole(parent);
 		}
 		if (worker) {
-			const workerEntity = await this.getAndCheckWorker(worker);
-			updated.worker = workerEntity;
+			updated.worker = await this.getAndCheckWorker(worker);
 		}
 
 		return await this.roleRepository.save(updated);
@@ -103,7 +134,7 @@ export class RoleService {
 	 * Метод для удаления роли
 	 */
 	async delete(roleId: number): Promise<DeleteResult> {
-		return await this.roleRepository.delete({ id: roleId});
+		return await this.roleRepository.delete({ id: roleId });
 	}
 
 	/**

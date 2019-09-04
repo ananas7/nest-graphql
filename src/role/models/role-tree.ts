@@ -15,6 +15,12 @@ export class RoleDataTree {
 	@Field()
 	direction: string;
 
+	@Field()
+	childrenCount: number;
+
+	@Field()
+	allChildrenCount: number;
+
 	@Field(type => [RoleDataTree], { nullable: true })
 	children: RoleDataTree[];
 

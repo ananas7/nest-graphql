@@ -5,10 +5,10 @@
 
 type Mutation {
   addWorker(newWorker: NewWorkerInput!): WorkerData!
-  updateWorker(updateWorker: NewWorkerInput!, workerId: Float!): WorkerData!
+  updateWorker(updateWorker: NewWorkerInput!, id: Float!): WorkerData!
   removeWorker(id: Float!): Boolean!
   addRole(newRole: NewRoleInput!): RoleData!
-  updateRole(updateRole: UpdateRoleInput!, roleId: Float!): RoleData!
+  updateRole(updateRole: UpdateRoleInput!, id: Float!): RoleData!
   addWorkerToRole(workerId: Float!, roleId: Float!): RoleData!
   removeRole(id: Float!): Boolean!
 }
@@ -29,7 +29,7 @@ type Query {
   worker(id: Float!): WorkerData!
   workers: [WorkerData!]!
   role(id: Float!): RoleData!
-  roles: [RoleDataTree!]!
+  roles(level: Int = null, parentId: Int): [RoleDataTree!]!
 }
 
 type RoleData {
@@ -44,13 +44,10 @@ type RoleDataTree {
   id: ID!
   name: String!
   direction: String!
+  childrenCount: Float!
+  allChildrenCount: Float!
   children: [RoleDataTree!]
   worker: WorkerData
-}
-
-type Subscription {
-  roleAdded: RoleData!
-  workerLinked: RoleData!
 }
 
 input UpdateRoleInput {
