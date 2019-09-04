@@ -82,6 +82,9 @@ export class RolesResolver {
 	 */
 	@Mutation(returns => Boolean)
 	async removeRole(@Args('id') id: number) {
-		return this.roleService.delete(id);
+		const result = await this.roleService.delete(id);
+		const isRemove = result.affected === 1;
+
+		return isRemove;
 	}
 }

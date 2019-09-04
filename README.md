@@ -81,4 +81,5 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 
 Дерево реализовано руками, воспользоваться https://github.com/typeorm/typeorm/blob/master/docs/tree-entities.md не вышло, потому что есть баги с работой, например (https://github.com/typeorm/typeorm/issues/2032).
 
-Не нашёл, как, используя tree-entities, джойнить таблицу. 
+Не нашёл, как, используя tree-entities, джойнить таблицу.
+Решение с подсчётом количества детей (прямых и всех) унылое, но есть) 

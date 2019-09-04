@@ -37,6 +37,7 @@ export class WorkerService {
 		const workerEntity = new WorkerEntity();
 		workerEntity.name = workerData.name;
 		workerEntity.surName = workerData.surName;
+		workerEntity.avatar = workerData.avatar;
 
 		return await this.workerRepository.save(workerEntity);
 
@@ -58,6 +59,7 @@ export class WorkerService {
 	async delete(workerId: number): Promise<DeleteResult> {
 		return await this.workerRepository.delete({ id: workerId });
 	}
+
 	/**
 	 * Находит сотрудника по id, если нет создаёт ошибку
 	 * @param id

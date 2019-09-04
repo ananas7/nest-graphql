@@ -72,6 +72,9 @@ export class WorkersResolver {
 	 */
 	@Mutation(returns => Boolean)
 	async removeWorker(@Args('id') id: number) {
-		return this.workerService.delete(id);
+		const result = await this.workerService.delete(id);
+		const isRemove = result.affected === 1;
+
+		return isRemove;
 	}
 }
