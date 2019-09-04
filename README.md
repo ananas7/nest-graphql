@@ -83,3 +83,5 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 
 Не нашёл, как, используя tree-entities, джойнить таблицу.
 Решение с подсчётом количества детей (прямых и всех) унылое, но есть) 
+
+@todo сделать миграции
