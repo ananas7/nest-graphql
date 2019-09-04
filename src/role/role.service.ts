@@ -62,7 +62,7 @@ export class RoleService {
 	 * Метод для поиска одной роли
 	 */
 	async findOne(id: number): Promise<RoleEntity> {
-		return await this.roleRepository.findOne(id);
+		return await this.getAndCheckRole(id);
 	}
 
 	/**
@@ -73,10 +73,7 @@ export class RoleService {
 		role.name = articleData.name;
 		role.direction = articleData.direction;
 		if (articleData.parentId) {
-			const parentRole = await this.roleRepository.findOne(articleData.parentId);
-			if (!parentRole) {
-				throw new NotFoundException(articleData.parentId);
-			}
+			const parentRole = await this.getAndCheckRole(articleData.parentId);
 			role.parent = parentRole;
 		}
 
@@ -88,20 +85,14 @@ export class RoleService {
 	 * Метод для обновления данных роли
 	 */
 	async update(roleId: number, {parent, worker, ...roleData}: UpdateRoleInput): Promise<RoleEntity> {
-		const toUpdate = await this.roleRepository.findOne({ id: roleId});
+		const toUpdate = await this.getAndCheckRole(roleId);
 		const updated = Object.assign(toUpdate, roleData);
 		if (parent) {
-			const parentRole = await this.roleRepository.findOne(parent);
-			if (!parentRole) {
-				throw new NotFoundException(parent);
-			}
+			const parentRole = await this.getAndCheckRole(parent);
 			updated.parent = parentRole;
 		}
 		if (worker) {
-			const workerEntity = await this.workerRepository.findOne(worker);
-			if (!workerEntity) {
-				throw new NotFoundException(worker);
-			}
+			const workerEntity = await this.getAndCheckWorker(worker);
 			updated.worker = workerEntity;
 		}
 
@@ -119,11 +110,37 @@ export class RoleService {
 	 * Метод для добавления роли сотрудника
 	 */
 	async linkWorkerToRole(roleId: number, workerId: number) {
-		const worker = await this.workerRepository.findOne(workerId);
-		const role = await this.roleRepository.findOne(roleId);
+		const worker = await this.getAndCheckWorker(workerId);
+		const role = await this.getAndCheckRole(roleId);
 
 		role.worker = worker;
 
 		return await this.roleRepository.save(role);
+	}
+
+	/**
+	 * Находит роль по id, если нет создаёт ошибку
+	 * @param id
+	 */
+	private async getAndCheckRole(id: number) {
+		const role = await this.roleRepository.findOne(id);
+		if (!role) {
+			throw new NotFoundException(id);
+		}
+
+		return role;
+	}
+
+	/**
+	 * Находит сотрудника по id, если нет создаёт ошибку
+	 * @param id
+	 */
+	private async getAndCheckWorker(id: number) {
+		const worker = await this.workerRepository.findOne(id);
+		if (!worker) {
+			throw new NotFoundException(id);
+		}
+
+		return worker;
 	}
 }

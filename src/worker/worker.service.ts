@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeleteResult, Repository } from 'typeorm';
 import { WorkerEntity } from './worker.entity';
@@ -18,15 +18,15 @@ export class WorkerService {
 	/**
 	 * Метод для поиска всех сотрудников
 	 */
-	findAll(): Promise<WorkerEntity[]> {
-		return this.workerRepository.find();
+	async findAll(): Promise<WorkerEntity[]> {
+		return await this.workerRepository.find();
 	}
 
 	/**
 	 * Метод для поиска одного сотрудника
 	 */
-	findOne(id: number): Promise<WorkerEntity> {
-		return this.workerRepository.findOne(id);
+	async findOne(id: number): Promise<WorkerEntity> {
+		return await this.getAndCheckWorker(id);
 	}
 
 	/**
@@ -46,7 +46,7 @@ export class WorkerService {
 	 * Метод для обновления данных сотрудника
 	 */
 	async update(workerId: number, workerData: Partial<WorkerData>): Promise<WorkerEntity> {
-		const toUpdate = await this.workerRepository.findOne({ id: workerId});
+		const toUpdate = await this.getAndCheckWorker(workerId);
 		const updated = Object.assign(toUpdate, workerData);
 
 		return await this.workerRepository.save(updated);
@@ -57,5 +57,17 @@ export class WorkerService {
 	 */
 	async delete(workerId: number): Promise<DeleteResult> {
 		return await this.workerRepository.delete({ id: workerId });
+	}
+	/**
+	 * Находит сотрудника по id, если нет создаёт ошибку
+	 * @param id
+	 */
+	private async getAndCheckWorker(id: number) {
+		const worker = await this.workerRepository.findOne(id);
+		if (!worker) {
+			throw new NotFoundException(id);
+		}
+
+		return worker;
 	}
 }

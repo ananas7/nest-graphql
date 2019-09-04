@@ -80,3 +80,5 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 По адресу http://localhost:3001/graphql доступен graphql, где можно строить запросы.
 
 Дерево реализовано руками, воспользоваться https://github.com/typeorm/typeorm/blob/master/docs/tree-entities.md не вышло, потому что есть баги с работой, например (https://github.com/typeorm/typeorm/issues/2032).
+
+Не нашёл, как, используя tree-entities, джойнить таблицу. 
